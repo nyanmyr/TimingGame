@@ -1,5 +1,12 @@
 package timinggame;
 
+/*
+TODO:
+- save score
+- sound effects
+*/
+
+
 import java.awt.Dimension;
 import java.awt.event.KeyEvent;
 import java.util.Timer;
@@ -8,56 +15,72 @@ import java.util.Random;
 
 public final class Main extends javax.swing.JFrame {
 
+    int highestScore;
     int score;
-    
+
     int speed;
-    
+
     int zoneStart;
     int zoneEnd;
-    
+
     Dimension screenSize;
     Random randomizer = new Random();
     Timer timer = new Timer();
 
+    boolean reversed;
+
+    TimerTask timerTask;
+
+    boolean gaming;
+    
+    boolean debugging;
+
     public Main() {
         initComponents();
 
-        label_Score.setText("SCORE");
-        label_Message.setText("TIME IT RIGHT! DON'T FAIL.");
-
         screenSize = panel_Main.getSize();
 
-        Start();
+        score = 0;
+        start();
         
-        RandomizeZone();
+        debugging = false;
+        label_CurrentValue.setVisible(debugging);
+        label_StartValue.setVisible(debugging);
+        label_EndValue.setVisible(debugging);
     }
 
-    public void Start() {
-        
+    public void start() {
+        gaming = false;
         speed = 10;
-    }
-    
-    public void RandomizeZone() {
 
-        int randomPosition = randomizer.nextInt(-235, 130);
+        label_Message.setText("TIME IT RIGHT! DON'T FAIL.");
+
+        label_Indicator.setBounds(10, 110, 480, 80);
+        slider_Slider.setValue(50);
+    }
+
+    public void randomizeZone() {
+
+        int randomPosition = randomizer.nextInt(-249, 134);
 
         label_Indicator.setBounds(
                 (screenSize.width / 2) + (randomPosition),
-                (screenSize.height / 2) - (29 / 2),
+                (screenSize.height / 2) - (56 / 2),
                 100, 24);
 
-        System.out.println("Starts at: " + randomPosition);
-        System.out.println("Actual: " + (int) (((80.00 / 365.00) * (randomPosition)) + 51.51));
-        System.out.println("Ends: " + (int) (((80.00 / 365.00) * (randomPosition)) + 71.51));
+//        System.out.println("Starts at: " + randomPosition);
+//        System.out.println("Actual: " + (int) (((80.00 / 365.00) * (randomPosition)) + 51.51));
+//        System.out.println("Ends: " + (int) (((80.00 / 365.00) * (randomPosition)) + 71.51));
+        zoneStart = (int) (((80.00 / (249.00 + 134.00)) * (randomPosition)) + 53);
+        zoneEnd = (int) (((80.00 / (249.00 + 134.00)) * (randomPosition)) + 73);
 
-        zoneStart = (int) (((80.00 / 365.00) * (randomPosition)) + 51.51);
-        zoneEnd = (int) (((80.00 / 365.00) * (randomPosition)) + 71.51);
+    }
+
+    private void moveZone() {
 
         timer = new Timer();
 
-        TimerTask timerTask = new TimerTask() {
-
-            boolean reversed = false;
+        timerTask = new TimerTask() {
 
             @Override
             public void run() {
@@ -77,7 +100,9 @@ public final class Main extends javax.swing.JFrame {
             }
         };
 
-        timer.scheduleAtFixedRate(timerTask, 0, speed - (score / 4));
+        int x = speed - (score / 2) < 1 ? 1 : speed - (score / 2);
+//        System.out.println("Speed: " + x);
+        timer.scheduleAtFixedRate(timerTask, 0, x);
     }
 
     @SuppressWarnings("unchecked")
@@ -89,19 +114,25 @@ public final class Main extends javax.swing.JFrame {
         panel_Main = new javax.swing.JPanel();
         slider_Slider = new javax.swing.JSlider();
         label_Indicator = new javax.swing.JLabel();
+        label_HighestScore = new javax.swing.JLabel();
         label_Score = new javax.swing.JLabel();
         button_Time = new javax.swing.JButton();
+        label_CurrentValue1 = new javax.swing.JLabel();
+        label_CurrentValue = new javax.swing.JLabel();
+        label_EndValue = new javax.swing.JLabel();
+        label_StartValue = new javax.swing.JLabel();
         label_Message = new javax.swing.JLabel();
 
         jScrollPane1.setViewportView(jTree1);
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setPreferredSize(new java.awt.Dimension(500, 300));
-        setSize(new java.awt.Dimension(500, 300));
+        setPreferredSize(new java.awt.Dimension(515, 330));
+        setResizable(false);
+        setSize(new java.awt.Dimension(515, 330));
 
         panel_Main.setFocusable(false);
-        panel_Main.setMinimumSize(new java.awt.Dimension(400, 300));
-        panel_Main.setPreferredSize(new java.awt.Dimension(500, 300));
+        panel_Main.setMinimumSize(new java.awt.Dimension(515, 330));
+        panel_Main.setPreferredSize(new java.awt.Dimension(515, 330));
         panel_Main.setRequestFocusEnabled(false);
         panel_Main.setVerifyInputWhenFocusTarget(false);
         panel_Main.setLayout(null);
@@ -109,13 +140,13 @@ public final class Main extends javax.swing.JFrame {
         slider_Slider.setBackground(new java.awt.Color(255, 255, 255, 0));
         slider_Slider.setMajorTickSpacing(10);
         slider_Slider.setMinorTickSpacing(1);
-        slider_Slider.setEnabled(false);
+        slider_Slider.setValue(22);
         slider_Slider.setFocusable(false);
         slider_Slider.setName(""); // NOI18N
         slider_Slider.setRequestFocusEnabled(false);
         slider_Slider.setVerifyInputWhenFocusTarget(false);
         panel_Main.add(slider_Slider);
-        slider_Slider.setBounds(0, 120, 480, 60);
+        slider_Slider.setBounds(0, 120, 500, 60);
         slider_Slider.setOpaque(false);
 
         label_Indicator.setBackground(new java.awt.Color(0, 102, 204));
@@ -124,19 +155,27 @@ public final class Main extends javax.swing.JFrame {
         label_Indicator.setRequestFocusEnabled(false);
         label_Indicator.setVerifyInputWhenFocusTarget(false);
         panel_Main.add(label_Indicator);
-        label_Indicator.setBounds(10, 110, 466, 80);
+        label_Indicator.setBounds(10, 110, 480, 80);
+
+        label_HighestScore.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        label_HighestScore.setText("HIGHEST SCORE: 0");
+        label_HighestScore.setFocusable(false);
+        label_HighestScore.setRequestFocusEnabled(false);
+        label_HighestScore.setVerifyInputWhenFocusTarget(false);
+        panel_Main.add(label_HighestScore);
+        label_HighestScore.setBounds(320, 200, 170, 40);
 
         label_Score.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        label_Score.setText("SCORE");
+        label_Score.setText("SCORE: 0");
         label_Score.setFocusable(false);
         label_Score.setRequestFocusEnabled(false);
         label_Score.setVerifyInputWhenFocusTarget(false);
         panel_Main.add(label_Score);
-        label_Score.setBounds(10, 10, 470, 40);
+        label_Score.setBounds(10, 10, 480, 40);
 
         button_Time.setText("TIME");
         panel_Main.add(button_Time);
-        button_Time.setBounds(175, 200, 130, 40);
+        button_Time.setBounds(180, 200, 140, 40);
         button_Time.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyTyped(java.awt.event.KeyEvent evt) {
                 panel_SpacePressed(evt);
@@ -149,23 +188,56 @@ public final class Main extends javax.swing.JFrame {
             }
         });
 
+        label_CurrentValue1.setFont(new java.awt.Font("Segoe UI", 0, 10)); // NOI18N
+        label_CurrentValue1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        label_CurrentValue1.setText("VERSION 0.1.1 (PROTOTYPE)");
+        label_CurrentValue1.setFocusable(false);
+        label_CurrentValue1.setRequestFocusEnabled(false);
+        label_CurrentValue1.setVerifyInputWhenFocusTarget(false);
+        panel_Main.add(label_CurrentValue1);
+        label_CurrentValue1.setBounds(180, 250, 140, 30);
+
+        label_CurrentValue.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        label_CurrentValue.setText("CURRENT VALUE:");
+        label_CurrentValue.setFocusable(false);
+        label_CurrentValue.setRequestFocusEnabled(false);
+        label_CurrentValue.setVerifyInputWhenFocusTarget(false);
+        panel_Main.add(label_CurrentValue);
+        label_CurrentValue.setBounds(10, 260, 160, 30);
+
+        label_EndValue.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        label_EndValue.setText("END VALUE:");
+        label_EndValue.setFocusable(false);
+        label_EndValue.setRequestFocusEnabled(false);
+        label_EndValue.setVerifyInputWhenFocusTarget(false);
+        panel_Main.add(label_EndValue);
+        label_EndValue.setBounds(10, 230, 160, 30);
+
+        label_StartValue.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        label_StartValue.setText("START VALUE:");
+        label_StartValue.setFocusable(false);
+        label_StartValue.setRequestFocusEnabled(false);
+        label_StartValue.setVerifyInputWhenFocusTarget(false);
+        panel_Main.add(label_StartValue);
+        label_StartValue.setBounds(10, 200, 160, 30);
+
         label_Message.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         label_Message.setText("MESSAGE");
         label_Message.setFocusable(false);
         label_Message.setRequestFocusEnabled(false);
         label_Message.setVerifyInputWhenFocusTarget(false);
         panel_Main.add(label_Message);
-        label_Message.setBounds(10, 50, 470, 50);
+        label_Message.setBounds(10, 50, 480, 50);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(panel_Main, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(panel_Main, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(panel_Main, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(panel_Main, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
         );
 
         pack();
@@ -190,29 +262,54 @@ public final class Main extends javax.swing.JFrame {
     }
 
     private void TimeAction() {
+        int test = slider_Slider.getValue();
 
-        if (slider_Slider.getValue() >= zoneStart && slider_Slider.getValue() <= zoneEnd) {
-            label_Score.setText("SCORE: " + ++score);
-            label_Message.setText("WIN");
-            timer.cancel();
-            RandomizeZone();
-        } else {
-            label_Message.setText("FAIL");
-            score = 0;
-            label_Score.setText("SCORE: " + score);
-            timer.cancel();
-            Start();
-            RandomizeZone();
+        if (debugging) {
+            label_CurrentValue.setText(String.format("CURRENT VALUE: %s (%S)", slider_Slider.getValue(), (test >= zoneStart && test <= zoneEnd)));
+            label_StartValue.setText(String.format("START VALUE: %s", zoneStart));
+            label_EndValue.setText(String.format("END VALUE: %s", zoneEnd));
         }
+
+        if (!gaming) {
+            moveZone();
+            gaming = true;
+        } else {
+            timer.cancel();
+            if (test >= zoneStart && test <= zoneEnd) {
+                label_Message.setText("WIN");
+                score++;
+                label_Score.setText("SCORE: " + score);
+                moveZone();
+            } else {
+                label_Message.setText("FAIL");
+                label_Score.setText("LAST SCORE: " + score);
+                if (score > highestScore) {
+                    highestScore = score;
+                }
+                label_HighestScore.setText("HIGHEST SCORE: " + highestScore);
+                score = 0;
+                start();
+            }
+        }
+
+        if (gaming) {
+            randomizeZone();
+        }
+
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton button_Time;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTree jTree1;
+    private javax.swing.JLabel label_CurrentValue;
+    private javax.swing.JLabel label_CurrentValue1;
+    private javax.swing.JLabel label_EndValue;
+    private javax.swing.JLabel label_HighestScore;
     private javax.swing.JLabel label_Indicator;
     private javax.swing.JLabel label_Message;
     private javax.swing.JLabel label_Score;
+    private javax.swing.JLabel label_StartValue;
     private javax.swing.JPanel panel_Main;
     private javax.swing.JSlider slider_Slider;
     // End of variables declaration//GEN-END:variables
