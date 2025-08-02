@@ -2,9 +2,9 @@ package timinggame;
 
 public enum SoundFiles {
     
-    CUT("src\\timinggame\\sounds\\cut.wav"),
-    FAIL("src\\timinggame\\sounds\\fail.wav"),
-    START("src\\timinggame\\sounds\\start.wav");
+    CUT("src\\timinggame\\resources\\cut.wav"),
+    FAIL("src\\timinggame\\resources\\fail.wav"),
+    START("src\\timinggame\\resources\\start.wav");
     
     private final String FILE_PATH;
     

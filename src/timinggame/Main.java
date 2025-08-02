@@ -17,6 +17,7 @@ import javax.sound.sampled.Clip;
 import javax.sound.sampled.LineEvent;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.UnsupportedAudioFileException;
+import javax.swing.ImageIcon;
 
 public final class Main extends javax.swing.JFrame {
 
@@ -43,33 +44,11 @@ public final class Main extends javax.swing.JFrame {
 
     boolean debugging;
 
-    public static void playSound(String filePath) {
-        try {
-            File soundFile = new File(filePath);
-            if (!soundFile.exists()) {
-                System.err.println("File not found: " + filePath);
-                return;
-            }
-
-            AudioInputStream audioIn = AudioSystem.getAudioInputStream(soundFile);
-            Clip clip = AudioSystem.getClip();
-            clip.open(audioIn);
-
-            // Optional: auto-close the clip when done
-            clip.addLineListener(event -> {
-                if (event.getType() == LineEvent.Type.STOP) {
-                    clip.close();
-                }
-            });
-
-            clip.start();
-        } catch (UnsupportedAudioFileException | IOException | LineUnavailableException e) {
-        }
-    }
-
     public Main() {
         initComponents();
 
+        // Set the icon image
+        
         screenSize = panel_Main.getSize();
 
         score = 0;
@@ -163,6 +142,7 @@ public final class Main extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Nyanmyr's Timing Game");
+        setIconImage(new ImageIcon(getClass().getResource("/timinggame/resources/icon.png")).getImage());
         setResizable(false);
         setSize(new java.awt.Dimension(515, 330));
 
@@ -340,6 +320,30 @@ public final class Main extends javax.swing.JFrame {
         }
     }
 
+        public static void playSound(String filePath) {
+        try {
+            File soundFile = new File(filePath);
+            if (!soundFile.exists()) {
+                System.err.println("File not found: " + filePath);
+                return;
+            }
+
+            AudioInputStream audioIn = AudioSystem.getAudioInputStream(soundFile);
+            Clip clip = AudioSystem.getClip();
+            clip.open(audioIn);
+
+            // Optional: auto-close the clip when done
+            clip.addLineListener(event -> {
+                if (event.getType() == LineEvent.Type.STOP) {
+                    clip.close();
+                }
+            });
+
+            clip.start();
+        } catch (UnsupportedAudioFileException | IOException | LineUnavailableException e) {
+        }
+    }
+    
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton button_Time;
     private javax.swing.JScrollPane jScrollPane1;
