@@ -1,0 +1,14 @@
+v 0.1.0 (3/28/2025)
+- created the game
+- completed fundamentals (hitting/ moving slider)
+
+v 0.1.1 (2/31/2025)
+- added starting state
+- added local high score
+- created github repository
+
+v 0.1.2 (2/8/2025)
+- added some constants to remove magic numbers
+- added high score saving system
+- added sound effects (cut, fail, start)
+- added sound files enum

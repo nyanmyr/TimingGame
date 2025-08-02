@@ -2,38 +2,70 @@ package timinggame;
 
 /*
 TODO:
-- save score
-- sound effects
-*/
-
-
+- difficulties (EASY, NORMAL, HARD, IMPOSSIBLE)
+ */
 import java.awt.Dimension;
 import java.awt.event.KeyEvent;
+import java.io.File;
+import java.io.IOException;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Random;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
+import javax.sound.sampled.LineEvent;
+import javax.sound.sampled.LineUnavailableException;
+import javax.sound.sampled.UnsupportedAudioFileException;
 
 public final class Main extends javax.swing.JFrame {
 
-    int highestScore;
+    int highestScore = HighscoreManager.loadHighScore();
     int score;
 
+    final int STARTING_SPEED = 10;
+    final int SCORE_DIVSOR = 3; // factor used to reduce speed as score increases
     int speed;
 
+    final Dimension INDICATOR_MAXED_POSITION = new Dimension(10, 110);
+    final Dimension INDICATOR_MAXED_SIZED = new Dimension(480, 80);
     int zoneStart;
     int zoneEnd;
 
     Dimension screenSize;
     Random randomizer = new Random();
+    
     Timer timer = new Timer();
-
+    TimerTask timerTask;
     boolean reversed;
 
-    TimerTask timerTask;
-
     boolean gaming;
-    
+
     boolean debugging;
+
+    public static void playSound(String filePath) {
+        try {
+            File soundFile = new File(filePath);
+            if (!soundFile.exists()) {
+                System.err.println("File not found: " + filePath);
+                return;
+            }
+
+            AudioInputStream audioIn = AudioSystem.getAudioInputStream(soundFile);
+            Clip clip = AudioSystem.getClip();
+            clip.open(audioIn);
+
+            // Optional: auto-close the clip when done
+            clip.addLineListener(event -> {
+                if (event.getType() == LineEvent.Type.STOP) {
+                    clip.close();
+                }
+            });
+
+            clip.start();
+        } catch (UnsupportedAudioFileException | IOException | LineUnavailableException e) {
+        }
+    }
 
     public Main() {
         initComponents();
@@ -42,7 +74,9 @@ public final class Main extends javax.swing.JFrame {
 
         score = 0;
         start();
-        
+
+        label_HighestScore.setText("HIGHEST SCORE: " + highestScore);
+
         debugging = false;
         label_CurrentValue.setVisible(debugging);
         label_StartValue.setVisible(debugging);
@@ -51,11 +85,13 @@ public final class Main extends javax.swing.JFrame {
 
     public void start() {
         gaming = false;
-        speed = 10;
+        speed = STARTING_SPEED;
 
         label_Message.setText("TIME IT RIGHT! DON'T FAIL.");
 
-        label_Indicator.setBounds(10, 110, 480, 80);
+        label_Indicator.setBounds(
+                INDICATOR_MAXED_POSITION.width, INDICATOR_MAXED_POSITION.height,
+                INDICATOR_MAXED_SIZED.width, INDICATOR_MAXED_SIZED.height);
         slider_Slider.setValue(50);
     }
 
@@ -69,8 +105,8 @@ public final class Main extends javax.swing.JFrame {
                 100, 24);
 
 //        System.out.println("Starts at: " + randomPosition);
-//        System.out.println("Actual: " + (int) (((80.00 / 365.00) * (randomPosition)) + 51.51));
-//        System.out.println("Ends: " + (int) (((80.00 / 365.00) * (randomPosition)) + 71.51));
+//        System.out.println("Actual: " + (int) (((80.00 / (249.00 + 134.00)) * (randomPosition)) + 53));
+//        System.out.println("Ends: " + (int) (((80.00 / (249.00 + 134.00)) * (randomPosition)) + 73));
         zoneStart = (int) (((80.00 / (249.00 + 134.00)) * (randomPosition)) + 53);
         zoneEnd = (int) (((80.00 / (249.00 + 134.00)) * (randomPosition)) + 73);
 
@@ -100,7 +136,7 @@ public final class Main extends javax.swing.JFrame {
             }
         };
 
-        int x = speed - (score / 2) < 1 ? 1 : speed - (score / 2);
+        int x = speed - (score / SCORE_DIVSOR) < 1 ? 1 : speed - (score / SCORE_DIVSOR);
 //        System.out.println("Speed: " + x);
         timer.scheduleAtFixedRate(timerTask, 0, x);
     }
@@ -126,7 +162,7 @@ public final class Main extends javax.swing.JFrame {
         jScrollPane1.setViewportView(jTree1);
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setPreferredSize(new java.awt.Dimension(515, 330));
+        setTitle("Nyanmyr's Timing Game");
         setResizable(false);
         setSize(new java.awt.Dimension(515, 330));
 
@@ -190,7 +226,7 @@ public final class Main extends javax.swing.JFrame {
 
         label_CurrentValue1.setFont(new java.awt.Font("Segoe UI", 0, 10)); // NOI18N
         label_CurrentValue1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        label_CurrentValue1.setText("VERSION 0.1.1 (PROTOTYPE)");
+        label_CurrentValue1.setText("VERSION 0.1.2 (PROTOTYPE)");
         label_CurrentValue1.setFocusable(false);
         label_CurrentValue1.setRequestFocusEnabled(false);
         label_CurrentValue1.setVerifyInputWhenFocusTarget(false);
@@ -249,15 +285,12 @@ public final class Main extends javax.swing.JFrame {
     }
 
     private void panel_SpacePressed(java.awt.event.KeyEvent evt) {
-
         if (evt.getKeyCode() == KeyEvent.VK_SPACE) {
-
             TimeAction();
         }
     }
 
     private void button_TimeClicked(java.awt.event.ActionEvent evt) {
-
         TimeAction();
     }
 
@@ -273,21 +306,31 @@ public final class Main extends javax.swing.JFrame {
         if (!gaming) {
             moveZone();
             gaming = true;
+            playSound(SoundFiles.START.getFilePath());
         } else {
             timer.cancel();
             if (test >= zoneStart && test <= zoneEnd) {
+                playSound(SoundFiles.CUT.getFilePath());
+
                 label_Message.setText("WIN");
                 score++;
                 label_Score.setText("SCORE: " + score);
+
                 moveZone();
             } else {
+                playSound(SoundFiles.FAIL.getFilePath());
+
                 label_Message.setText("FAIL");
                 label_Score.setText("LAST SCORE: " + score);
                 if (score > highestScore) {
                     highestScore = score;
                 }
+
                 label_HighestScore.setText("HIGHEST SCORE: " + highestScore);
+                HighscoreManager.saveHighScore(highestScore);
+
                 score = 0;
+
                 start();
             }
         }
@@ -295,7 +338,6 @@ public final class Main extends javax.swing.JFrame {
         if (gaming) {
             randomizeZone();
         }
-
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
