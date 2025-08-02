@@ -6,8 +6,8 @@ TODO:
  */
 import java.awt.Dimension;
 import java.awt.event.KeyEvent;
-import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Random;
@@ -35,7 +35,7 @@ public final class Main extends javax.swing.JFrame {
 
     Dimension screenSize;
     Random randomizer = new Random();
-    
+
     Timer timer = new Timer();
     TimerTask timerTask;
     boolean reversed;
@@ -48,7 +48,6 @@ public final class Main extends javax.swing.JFrame {
         initComponents();
 
         // Set the icon image
-        
         screenSize = panel_Main.getSize();
 
         score = 0;
@@ -206,7 +205,7 @@ public final class Main extends javax.swing.JFrame {
 
         label_CurrentValue1.setFont(new java.awt.Font("Segoe UI", 0, 10)); // NOI18N
         label_CurrentValue1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        label_CurrentValue1.setText("VERSION 0.1.2 (PROTOTYPE)");
+        label_CurrentValue1.setText("VERSION 0.1.4 (PROTOTYPE)");
         label_CurrentValue1.setFocusable(false);
         label_CurrentValue1.setRequestFocusEnabled(false);
         label_CurrentValue1.setVerifyInputWhenFocusTarget(false);
@@ -320,30 +319,29 @@ public final class Main extends javax.swing.JFrame {
         }
     }
 
-        public static void playSound(String filePath) {
+    public static void playSound(URL filePath) {
         try {
-            File soundFile = new File(filePath);
-            if (!soundFile.exists()) {
-                System.err.println("File not found: " + filePath);
+            if (filePath == null) {
+                System.err.println("Sound URL is null.");
                 return;
             }
 
-            AudioInputStream audioIn = AudioSystem.getAudioInputStream(soundFile);
+            AudioInputStream audioIn = AudioSystem.getAudioInputStream(filePath);
             Clip clip = AudioSystem.getClip();
             clip.open(audioIn);
 
-            // Optional: auto-close the clip when done
+            // Optional cleanup listener
             clip.addLineListener(event -> {
                 if (event.getType() == LineEvent.Type.STOP) {
                     clip.close();
                 }
             });
 
-            clip.start();
+            clip.start(); // Play asynchronously
         } catch (UnsupportedAudioFileException | IOException | LineUnavailableException e) {
         }
     }
-    
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton button_Time;
     private javax.swing.JScrollPane jScrollPane1;

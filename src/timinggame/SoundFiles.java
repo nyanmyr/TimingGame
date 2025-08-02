@@ -1,18 +1,23 @@
 package timinggame;
 
+import java.net.URL;
+
 public enum SoundFiles {
+
+    CUT("/timinggame/resources/cut.wav"),
+    FAIL("/timinggame/resources/fail.wav"),
+    START("/timinggame/resources/start.wav");
     
-    CUT("src\\timinggame\\resources\\cut.wav"),
-    FAIL("src\\timinggame\\resources\\fail.wav"),
-    START("src\\timinggame\\resources\\start.wav");
-    
-    private final String FILE_PATH;
+    private final URL FILE_PATH;
     
     SoundFiles(String FILE_PATH) {
-        this.FILE_PATH = FILE_PATH;
+        this.FILE_PATH = SoundFiles.class.getResource(FILE_PATH);
+        if (this.FILE_PATH == null) {
+            throw new IllegalArgumentException("Resource not found: " + FILE_PATH);
+        }
     }
     
-    public String getFilePath() {
+    public URL getFilePath() {
         return FILE_PATH;
     }
     
