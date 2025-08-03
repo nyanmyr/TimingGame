@@ -8,6 +8,7 @@ Timing Game is my Java game application project made Apache NetBeans using Ant.
 
 ## Requirements
 ```
+Minimum Storage Space: 384 MB
 Minimum Screen Size: 515x330
 Recommended Graphics Card: A potato
 ```
