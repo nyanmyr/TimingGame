@@ -13,5 +13,5 @@ public class Highscore implements Serializable {
 
     public int getScore() {
         return score;
-    }
+    }   
 }

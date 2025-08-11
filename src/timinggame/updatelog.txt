@@ -18,3 +18,8 @@ v 0.1.3 (2/8/2025)
 
 v 0.1.4 (2/8/2025)
 - reworked sound effects system to use URL
+
+v 0.2.0 (11/8/2025)
+- previous highest score beaten message
+- added recent scores
+- did some minor refactoring

@@ -8,6 +8,7 @@ import java.awt.Dimension;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Random;
@@ -44,6 +45,9 @@ public final class Main extends javax.swing.JFrame {
 
     boolean debugging;
 
+    ArrayList<Integer> recentScores = RecentScoreManager.loadRecentScores();
+    float averageScore = 0;
+
     public Main() {
         initComponents();
 
@@ -53,7 +57,10 @@ public final class Main extends javax.swing.JFrame {
         score = 0;
         start();
 
+        calculateAverage();
+
         label_HighestScore.setText("HIGHEST SCORE: " + highestScore);
+        label_AverageScore.setText(String.format("AVERAGE SCORE: %.2f", averageScore));
 
         debugging = false;
         label_CurrentValue.setVisible(debugging);
@@ -61,7 +68,7 @@ public final class Main extends javax.swing.JFrame {
         label_EndValue.setVisible(debugging);
     }
 
-    public void start() {
+    private void start() {
         gaming = false;
         speed = STARTING_SPEED;
 
@@ -73,7 +80,7 @@ public final class Main extends javax.swing.JFrame {
         slider_Slider.setValue(50);
     }
 
-    public void randomizeZone() {
+    private void randomizeZone() {
 
         int randomPosition = randomizer.nextInt(-249, 134);
 
@@ -128,6 +135,8 @@ public final class Main extends javax.swing.JFrame {
         panel_Main = new javax.swing.JPanel();
         slider_Slider = new javax.swing.JSlider();
         label_Indicator = new javax.swing.JLabel();
+        label_AverageScoreText = new javax.swing.JLabel();
+        label_AverageScore = new javax.swing.JLabel();
         label_HighestScore = new javax.swing.JLabel();
         label_Score = new javax.swing.JLabel();
         button_Time = new javax.swing.JButton();
@@ -172,6 +181,23 @@ public final class Main extends javax.swing.JFrame {
         panel_Main.add(label_Indicator);
         label_Indicator.setBounds(10, 110, 480, 80);
 
+        label_AverageScoreText.setFont(new java.awt.Font("Segoe UI", 0, 10)); // NOI18N
+        label_AverageScoreText.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        label_AverageScoreText.setText("(WITHIN 10 RUNS)");
+        label_AverageScoreText.setFocusable(false);
+        label_AverageScoreText.setRequestFocusEnabled(false);
+        label_AverageScoreText.setVerifyInputWhenFocusTarget(false);
+        panel_Main.add(label_AverageScoreText);
+        label_AverageScoreText.setBounds(320, 280, 170, 20);
+
+        label_AverageScore.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        label_AverageScore.setText("AVERAGE SCORE: 0");
+        label_AverageScore.setFocusable(false);
+        label_AverageScore.setRequestFocusEnabled(false);
+        label_AverageScore.setVerifyInputWhenFocusTarget(false);
+        panel_Main.add(label_AverageScore);
+        label_AverageScore.setBounds(320, 240, 170, 40);
+
         label_HighestScore.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         label_HighestScore.setText("HIGHEST SCORE: 0");
         label_HighestScore.setFocusable(false);
@@ -188,6 +214,7 @@ public final class Main extends javax.swing.JFrame {
         panel_Main.add(label_Score);
         label_Score.setBounds(10, 10, 480, 40);
 
+        button_Time.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
         button_Time.setText("TIME");
         panel_Main.add(button_Time);
         button_Time.setBounds(180, 200, 140, 40);
@@ -205,12 +232,12 @@ public final class Main extends javax.swing.JFrame {
 
         label_CurrentValue1.setFont(new java.awt.Font("Segoe UI", 0, 10)); // NOI18N
         label_CurrentValue1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        label_CurrentValue1.setText("VERSION 0.1.4 (PROTOTYPE)");
+        label_CurrentValue1.setText("VERSION 0.2.0 (RELEASE");
         label_CurrentValue1.setFocusable(false);
         label_CurrentValue1.setRequestFocusEnabled(false);
         label_CurrentValue1.setVerifyInputWhenFocusTarget(false);
         panel_Main.add(label_CurrentValue1);
-        label_CurrentValue1.setBounds(180, 250, 140, 30);
+        label_CurrentValue1.setBounds(180, 240, 140, 40);
 
         label_CurrentValue.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         label_CurrentValue.setText("CURRENT VALUE:");
@@ -300,15 +327,9 @@ public final class Main extends javax.swing.JFrame {
                 playSound(SoundFiles.FAIL.getFilePath());
 
                 label_Message.setText("FAIL");
-                label_Score.setText("LAST SCORE: " + score);
-                if (score > highestScore) {
-                    highestScore = score;
-                }
 
-                label_HighestScore.setText("HIGHEST SCORE: " + highestScore);
-                HighscoreManager.saveHighScore(highestScore);
-
-                score = 0;
+                addRecentScore(score);
+                updateScore();
 
                 start();
             }
@@ -342,10 +363,52 @@ public final class Main extends javax.swing.JFrame {
         }
     }
 
+    private void addRecentScore(int score) {
+
+        recentScores.addFirst(score);
+        if (recentScores.size() > 10) {
+            recentScores.remove(10);
+        }
+
+        RecentScoreManager.saveRecentScores(recentScores);
+        label_AverageScore.setText(String.format("AVERAGE SCORE: %.2f", averageScore));
+
+        calculateAverage();
+    }
+
+    private void calculateAverage() {
+        if (!recentScores.isEmpty()) {
+            float sum = 0;
+            for (int i : recentScores) {
+//            System.out.print(i + " ");
+                sum += i;
+            }
+            averageScore = sum / recentScores.size();
+//        System.out.println("Average: " + averageScore);
+        } else {
+            averageScore = 0;
+        }
+    }
+
+    private void updateScore() {
+        label_Score.setText("LAST SCORE: " + score);
+        
+        if (score > highestScore) {
+            label_Score.setText("PREVIOUS HIGHEST SCORE BEATEN! " + score);
+            highestScore = score;
+            label_HighestScore.setText("HIGHEST SCORE: " + highestScore);
+            HighscoreManager.saveHighScore(highestScore);
+        }
+        
+        score = 0;
+    }
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton button_Time;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTree jTree1;
+    private javax.swing.JLabel label_AverageScore;
+    private javax.swing.JLabel label_AverageScoreText;
     private javax.swing.JLabel label_CurrentValue;
     private javax.swing.JLabel label_CurrentValue1;
     private javax.swing.JLabel label_EndValue;
