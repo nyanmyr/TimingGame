@@ -6,7 +6,8 @@ public enum SoundFiles {
 
     CUT("/timinggame/resources/cut.wav"),
     FAIL("/timinggame/resources/fail.wav"),
-    START("/timinggame/resources/start.wav");
+    START("/timinggame/resources/start.wav"),
+    SHRINK("/timinggame/resources/shrink.wav");
     
     private final URL FILE_PATH;
     

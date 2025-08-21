@@ -4,6 +4,7 @@ package timinggame;
 TODO:
 - difficulties (EASY, NORMAL, HARD, IMPOSSIBLE)
  */
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
@@ -22,31 +23,56 @@ import javax.swing.ImageIcon;
 
 public final class Main extends javax.swing.JFrame {
 
-    int highestScore = HighscoreManager.loadHighScore();
+    // <editor-fold desc="color constants">
+    final Color NORMAL_COLOR = new java.awt.Color(0, 102, 204);
+    final Color HARDCORE_COLOR = new java.awt.Color(204, 102, 0);
+    // </editor-fold>
+
+    boolean gaming;
+    boolean DEBUGGING = false;
+
+    // <editor-fold desc="scoring variables">
     int score;
 
-    final int STARTING_SPEED = 10;
-    final int SCORE_DIVSOR = 3; // factor used to reduce speed as score increases
-    int speed;
+    // high scores
+    int highestScore = HighscoreManager.loadHighScore();
+    int hardcoreHighestScore = HardcoreHighscoreManager.loadHighScore();
 
+    // recent && average scores
+    ArrayList<Integer> recentScores = RecentScoreManager.loadRecentScores();
+    float averageScore = 0;
+    ArrayList<Integer> hardcoreRecentScores = HardcoreRecentScoreManager.loadRecentScores();
+    float hardcoreAverageScore = 0;
+    // </editor-fold>
+
+    // <editor-fold desc="speed variables">
+    final int STARTING_SPEED = 10;
+    int score_divisor = 3; // factor used to reduce speed as score increases
+    int speed;
+    // </editor-fold>
+
+    // <editor-fold desc="screen size variables">
     final Dimension INDICATOR_MAXED_POSITION = new Dimension(10, 110);
     final Dimension INDICATOR_MAXED_SIZED = new Dimension(480, 80);
+    Dimension screenSize;
+    // </editor-fold>
+
+    // <editor-fold desc="randomizer variables">
+    Random randomizer = new Random();
     int zoneStart;
     int zoneEnd;
+    // </editor-fold>
 
-    Dimension screenSize;
-    Random randomizer = new Random();
-
+    // <editor-fold desc="timer variables">
     Timer timer = new Timer();
     TimerTask timerTask;
     boolean reversed;
+    // </editor-fold>
 
-    boolean gaming;
-
-    boolean debugging;
-
-    ArrayList<Integer> recentScores = RecentScoreManager.loadRecentScores();
-    float averageScore = 0;
+    // <editor-fold desc="hardcore variables">
+    boolean isHardcore = false;
+    int shrinkFactor = 0;
+    // </editor-fold>
 
     public Main() {
         initComponents();
@@ -57,15 +83,9 @@ public final class Main extends javax.swing.JFrame {
         score = 0;
         start();
 
-        calculateAverage();
-
-        label_HighestScore.setText("HIGHEST SCORE: " + highestScore);
-        label_AverageScore.setText(String.format("AVERAGE SCORE: %.2f", averageScore));
-
-        debugging = false;
-        label_CurrentValue.setVisible(debugging);
-        label_StartValue.setVisible(debugging);
-        label_EndValue.setVisible(debugging);
+        label_CurrentValue.setVisible(DEBUGGING);
+        label_StartValue.setVisible(DEBUGGING);
+        label_EndValue.setVisible(DEBUGGING);
     }
 
     private void start() {
@@ -78,55 +98,15 @@ public final class Main extends javax.swing.JFrame {
                 INDICATOR_MAXED_POSITION.width, INDICATOR_MAXED_POSITION.height,
                 INDICATOR_MAXED_SIZED.width, INDICATOR_MAXED_SIZED.height);
         slider_Slider.setValue(50);
+
+        button_Mode.setVisible(true);
+
+        calculateAverage();
+        setHighestScoreLabel();
+
+        shrinkFactor = 0;
     }
 
-    private void randomizeZone() {
-
-        int randomPosition = randomizer.nextInt(-249, 134);
-
-        label_Indicator.setBounds(
-                (screenSize.width / 2) + (randomPosition),
-                (screenSize.height / 2) - (56 / 2),
-                100, 24);
-
-//        System.out.println("Starts at: " + randomPosition);
-//        System.out.println("Actual: " + (int) (((80.00 / (249.00 + 134.00)) * (randomPosition)) + 53));
-//        System.out.println("Ends: " + (int) (((80.00 / (249.00 + 134.00)) * (randomPosition)) + 73));
-        zoneStart = (int) (((80.00 / (249.00 + 134.00)) * (randomPosition)) + 53);
-        zoneEnd = (int) (((80.00 / (249.00 + 134.00)) * (randomPosition)) + 73);
-
-    }
-
-    private void moveZone() {
-
-        timer = new Timer();
-
-        timerTask = new TimerTask() {
-
-            @Override
-            public void run() {
-                if (reversed) {
-                    slider_Slider.setValue(slider_Slider.getValue() - 1);
-                    if (slider_Slider.getValue() == 0) {
-                        slider_Slider.setValue(slider_Slider.getValue() + 1);
-                        reversed = false;
-                    }
-                } else {
-                    slider_Slider.setValue(slider_Slider.getValue() + 1);
-                    if (slider_Slider.getValue() == slider_Slider.getMaximum()) {
-                        slider_Slider.setValue(slider_Slider.getValue() - 1);
-                        reversed = true;
-                    }
-                }
-            }
-        };
-
-        int x = speed - (score / SCORE_DIVSOR) < 1 ? 1 : speed - (score / SCORE_DIVSOR);
-//        System.out.println("Speed: " + x);
-        timer.scheduleAtFixedRate(timerTask, 0, x);
-    }
-
-    @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
@@ -134,12 +114,13 @@ public final class Main extends javax.swing.JFrame {
         jTree1 = new javax.swing.JTree();
         panel_Main = new javax.swing.JPanel();
         slider_Slider = new javax.swing.JSlider();
+        button_Mode = new javax.swing.JButton();
+        button_Time = new javax.swing.JButton();
         label_Indicator = new javax.swing.JLabel();
         label_AverageScoreText = new javax.swing.JLabel();
         label_AverageScore = new javax.swing.JLabel();
         label_HighestScore = new javax.swing.JLabel();
         label_Score = new javax.swing.JLabel();
-        button_Time = new javax.swing.JButton();
         label_CurrentValue1 = new javax.swing.JLabel();
         label_CurrentValue = new javax.swing.JLabel();
         label_EndValue = new javax.swing.JLabel();
@@ -164,7 +145,6 @@ public final class Main extends javax.swing.JFrame {
         slider_Slider.setBackground(new java.awt.Color(255, 255, 255, 0));
         slider_Slider.setMajorTickSpacing(10);
         slider_Slider.setMinorTickSpacing(1);
-        slider_Slider.setValue(22);
         slider_Slider.setFocusable(false);
         slider_Slider.setName(""); // NOI18N
         slider_Slider.setRequestFocusEnabled(false);
@@ -173,7 +153,38 @@ public final class Main extends javax.swing.JFrame {
         slider_Slider.setBounds(0, 120, 500, 60);
         slider_Slider.setOpaque(false);
 
-        label_Indicator.setBackground(new java.awt.Color(0, 102, 204));
+        button_Mode.setBackground(NORMAL_COLOR);
+        button_Mode.setForeground(new java.awt.Color(244, 244, 244));
+        button_Mode.setText("Normal");
+        button_Mode.setFocusPainted(false);
+        button_Mode.setFocusable(false);
+        panel_Main.add(button_Mode);
+        button_Mode.setBounds(10, 10, 110, 30);
+        button_Mode.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                button_ModeChange(evt);
+            }
+        });
+
+        button_Time.setBackground(NORMAL_COLOR);
+        button_Time.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
+        button_Time.setForeground(new java.awt.Color(244, 244, 244));
+        button_Time.setText("TIME");
+        panel_Main.add(button_Time);
+        button_Time.setBounds(180, 200, 140, 40);
+        button_Time.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyTyped(java.awt.event.KeyEvent evt) {
+                panel_SpacePressed(evt);
+            }
+        });
+
+        button_Time.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                button_TimeClicked(evt);
+            }
+        });
+
+        label_Indicator.setBackground(NORMAL_COLOR);
         label_Indicator.setFocusable(false);
         label_Indicator.setOpaque(true);
         label_Indicator.setRequestFocusEnabled(false);
@@ -214,25 +225,9 @@ public final class Main extends javax.swing.JFrame {
         panel_Main.add(label_Score);
         label_Score.setBounds(10, 10, 480, 40);
 
-        button_Time.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
-        button_Time.setText("TIME");
-        panel_Main.add(button_Time);
-        button_Time.setBounds(180, 200, 140, 40);
-        button_Time.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyTyped(java.awt.event.KeyEvent evt) {
-                panel_SpacePressed(evt);
-            }
-        });
-
-        button_Time.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                button_TimeClicked(evt);
-            }
-        });
-
         label_CurrentValue1.setFont(new java.awt.Font("Segoe UI", 0, 10)); // NOI18N
         label_CurrentValue1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        label_CurrentValue1.setText("VERSION 0.2.0 (RELEASE");
+        label_CurrentValue1.setText("VERSION 0.2.1 (RELEASE");
         label_CurrentValue1.setFocusable(false);
         label_CurrentValue1.setRequestFocusEnabled(false);
         label_CurrentValue1.setVerifyInputWhenFocusTarget(false);
@@ -290,20 +285,63 @@ public final class Main extends javax.swing.JFrame {
         java.awt.EventQueue.invokeLater(() -> new Main().setVisible(true));
     }
 
-    private void panel_SpacePressed(java.awt.event.KeyEvent evt) {
-        if (evt.getKeyCode() == KeyEvent.VK_SPACE) {
-            TimeAction();
+    // <editor-fold desc="game loop functions">
+    private void randomizeZone() {
+
+        int randomPosition = randomizer.nextInt(-249, 134);
+//        int randomPosition = 134;
+
+        label_Indicator.setBounds(
+                (screenSize.width / 2) + (randomPosition) + (shrinkFactor * 10),
+                (screenSize.height / 2) - (56 / 2),
+                100 - (shrinkFactor * 10), 24);
+
+        if (isHardcore && score > 1 && shrinkFactor < 5 && score % 3 == 0) {
+            playSound(SoundFiles.SHRINK.getFilePath());
+            shrinkFactor++;
         }
+
+//        System.out.println("Starts at: " + randomPosition);
+//        System.out.println("Actual: " + (int) (((80.00 / (249.00 + 134.00)) * (randomPosition)) + 53));
+//        System.out.println("Ends: " + (int) (((80.00 / (249.00 + 134.00)) * (randomPosition)) + 73));
+        zoneStart = (int) (((80.00 / (249.00 + 134.00)) * (randomPosition)) + 53);
+        zoneEnd = (int) ((((80.00 / (249.00 + 134.00)) * (randomPosition)) + 73)) - (shrinkFactor * 2);
+
     }
 
-    private void button_TimeClicked(java.awt.event.ActionEvent evt) {
-        TimeAction();
+    private void moveZone() {
+
+        timer = new Timer();
+
+        timerTask = new TimerTask() {
+
+            @Override
+            public void run() {
+                if (reversed) {
+                    slider_Slider.setValue(slider_Slider.getValue() - 1);
+                    if (slider_Slider.getValue() == 0) {
+                        slider_Slider.setValue(slider_Slider.getValue() + 1);
+                        reversed = false;
+                    }
+                } else {
+                    slider_Slider.setValue(slider_Slider.getValue() + 1);
+                    if (slider_Slider.getValue() == slider_Slider.getMaximum()) {
+                        slider_Slider.setValue(slider_Slider.getValue() - 1);
+                        reversed = true;
+                    }
+                }
+            }
+        };
+
+        int x = speed - (score / score_divisor) < 1 ? 1 : speed - (score / score_divisor);
+//        System.out.println("Speed: " + x);
+        timer.scheduleAtFixedRate(timerTask, 0, x);
     }
 
-    private void TimeAction() {
+    private void timeAction() {
         int test = slider_Slider.getValue();
 
-        if (debugging) {
+        if (DEBUGGING) {
             label_CurrentValue.setText(String.format("CURRENT VALUE: %s (%S)", slider_Slider.getValue(), (test >= zoneStart && test <= zoneEnd)));
             label_StartValue.setText(String.format("START VALUE: %s", zoneStart));
             label_EndValue.setText(String.format("END VALUE: %s", zoneEnd));
@@ -313,6 +351,7 @@ public final class Main extends javax.swing.JFrame {
             moveZone();
             gaming = true;
             playSound(SoundFiles.START.getFilePath());
+            button_Mode.setVisible(false);
         } else {
             timer.cancel();
             if (test >= zoneStart && test <= zoneEnd) {
@@ -339,6 +378,19 @@ public final class Main extends javax.swing.JFrame {
             randomizeZone();
         }
     }
+    // </editor-fold>
+
+    // <editor-fold desc="input functions">
+    private void panel_SpacePressed(java.awt.event.KeyEvent evt) {
+        if (evt.getKeyCode() == KeyEvent.VK_SPACE) {
+            timeAction();
+        }
+    }
+
+    private void button_TimeClicked(java.awt.event.ActionEvent evt) {
+        timeAction();
+    }
+    // </editor-fold>
 
     public static void playSound(URL filePath) {
         try {
@@ -363,28 +415,55 @@ public final class Main extends javax.swing.JFrame {
         }
     }
 
+    // <editor-fold desc="scoring functions">
     private void addRecentScore(int score) {
+
+        if (isHardcore) {
+            hardcoreRecentScores.addFirst(score);
+            if (hardcoreRecentScores.size() > 10) {
+                hardcoreRecentScores.remove(10);
+            }
+
+            calculateAverage();
+
+            HardcoreRecentScoreManager.saveRecentScores(hardcoreRecentScores);
+            label_AverageScore.setText(String.format("AVERAGE SCORE: %.2f", hardcoreAverageScore));
+
+            return;
+        }
 
         recentScores.addFirst(score);
         if (recentScores.size() > 10) {
             recentScores.remove(10);
         }
 
+        calculateAverage();
+
         RecentScoreManager.saveRecentScores(recentScores);
         label_AverageScore.setText(String.format("AVERAGE SCORE: %.2f", averageScore));
 
-        calculateAverage();
     }
 
     private void calculateAverage() {
+        if (isHardcore) {
+            if (!hardcoreRecentScores.isEmpty()) {
+                float sum = 0;
+                for (int i : hardcoreRecentScores) {
+                    sum += i;
+                }
+                hardcoreAverageScore = sum / hardcoreRecentScores.size();
+            } else {
+                hardcoreAverageScore = 0;
+            }
+            return;
+        }
+
         if (!recentScores.isEmpty()) {
             float sum = 0;
             for (int i : recentScores) {
-//            System.out.print(i + " ");
                 sum += i;
             }
             averageScore = sum / recentScores.size();
-//        System.out.println("Average: " + averageScore);
         } else {
             averageScore = 0;
         }
@@ -392,18 +471,73 @@ public final class Main extends javax.swing.JFrame {
 
     private void updateScore() {
         label_Score.setText("LAST SCORE: " + score);
-        
+
+        if (isHardcore && score > hardcoreHighestScore) {
+            label_Score.setText("PREVIOUS HIGHEST SCORE BEATEN! " + score);
+            hardcoreHighestScore = score;
+            label_HighestScore.setText("HIGHEST SCORE: " + hardcoreHighestScore);
+            HardcoreHighscoreManager.saveHighScore(hardcoreHighestScore);
+            score = 0;
+
+            return;
+        }
+
         if (score > highestScore) {
             label_Score.setText("PREVIOUS HIGHEST SCORE BEATEN! " + score);
             highestScore = score;
             label_HighestScore.setText("HIGHEST SCORE: " + highestScore);
             HighscoreManager.saveHighScore(highestScore);
         }
-        
+
         score = 0;
     }
 
+    private void setHighestScoreLabel() {
+        if (isHardcore) {
+            label_HighestScore.setText("HIGHEST SCORE: " + hardcoreHighestScore);
+            label_AverageScore.setText(String.format("AVERAGE SCORE: %.2f", hardcoreAverageScore));
+        } else {
+            label_HighestScore.setText("HIGHEST SCORE: " + highestScore);
+            label_AverageScore.setText(String.format("AVERAGE SCORE: %.2f", averageScore));
+        }
+
+    }
+    // </editor-fold>
+
+    private void button_ModeChange(java.awt.event.ActionEvent evt) {
+
+        if (button_Mode.getText().equals("Normal")) {
+            isHardcore = true;
+            button_Mode.setText("Hardcore");
+            label_Message.setText("<html>"
+                    + "<p style=\"text-align: center;\">"
+                    + "The zone will move faster every two hits and shrink every three hits! Are you up for the test?"
+                    + "</p>"
+                    + "</html>");
+            label_Score.setText("Prepare for Hardcore Mode");
+        } else {
+            isHardcore = false;
+            button_Mode.setText("Normal");
+            label_Message.setText("The zone will move faster every three hits! Test your reflexes!");
+            label_Score.setText("Welcome to Normal Mode");
+        }
+
+        setHighestScoreLabel();
+        changeColors(isHardcore ? HARDCORE_COLOR : NORMAL_COLOR);
+        score_divisor = isHardcore ? 2 : 3;
+    }
+
+    private void changeColors(Color color) {
+        button_Mode.setBackground(color);
+        button_Time.setBackground(color);
+        label_Indicator.setBackground(color);
+        getContentPane().revalidate();
+        getContentPane().repaint();
+    }
+
+    // <editor-fold desc="swing variables declaration">
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton button_Mode;
     private javax.swing.JButton button_Time;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTree jTree1;
@@ -420,4 +554,5 @@ public final class Main extends javax.swing.JFrame {
     private javax.swing.JPanel panel_Main;
     private javax.swing.JSlider slider_Slider;
     // End of variables declaration//GEN-END:variables
+    // </editor-fold>
 }
