@@ -1,9 +1,5 @@
 package timinggame;
 
-/*
-TODO:
-- difficulties (EASY, NORMAL, HARD, IMPOSSIBLE)
- */
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.KeyEvent;
